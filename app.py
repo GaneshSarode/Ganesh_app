@@ -1,24 +1,16 @@
 import streamlit as st
-import requests
-from streamlit_lottie import st_lottie
-import google.generativeai as genai
 
 # --------------------------------------------------
-# PAGE CONFIG (FIRST STREAMLIT COMMAND)
+# PAGE CONFIG
 # --------------------------------------------------
 st.set_page_config(
     page_title="Ganesh Sarode | Portfolio",
-    page_icon="💼",
+    page_icon="💻",
     layout="wide"
 )
 
 # --------------------------------------------------
-# DEBUG MARKER
-# --------------------------------------------------
-st.write("APP STARTED")
-
-# --------------------------------------------------
-# THEME TOGGLE
+# THEME STATE
 # --------------------------------------------------
 if "theme" not in st.session_state:
     st.session_state.theme = "light"
@@ -26,95 +18,154 @@ if "theme" not in st.session_state:
 dark_mode = st.toggle("🌙 Dark Mode", st.session_state.theme == "dark")
 st.session_state.theme = "dark" if dark_mode else "light"
 
+# --------------------------------------------------
+# STYLES (DARK + 3D)
+# --------------------------------------------------
+if st.session_state.theme == "dark":
+    bg = "#0e1117"
+    text = "#e6e6e6"
+    card = "#161b22"
+else:
+    bg = "#ffffff"
+    text = "#000000"
+    card = "#f4f4f4"
 
-def apply_theme(theme):
-    if theme == "dark":
-        st.markdown(
-            "<style>.stApp{background-color:#1e1e1e;color:white;}</style>",
-            unsafe_allow_html=True,
-        )
-    else:
-        st.markdown(
-            "<style>.stApp{background-color:white;color:black;}</style>",
-            unsafe_allow_html=True,
-        )
+st.markdown(f"""
+<style>
+.stApp {{
+    background-color: {bg};
+    color: {text};
+}}
 
+.card {{
+    background: {card};
+    padding: 22px;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    margin-bottom: 22px;
+}}
 
-apply_theme(st.session_state.theme)
+.card:hover {{
+    transform: translateY(-6px);
+    box-shadow: 0 18px 40px rgba(0,0,0,0.25);
+}}
+
+a {{
+    text-decoration: none;
+    font-weight: 600;
+}}
+</style>
+""", unsafe_allow_html=True)
 
 # --------------------------------------------------
-# SAFE LOTTIE LOADER
+# HERO
 # --------------------------------------------------
-@st.cache_data
-def load_lottie(url):
-    try:
-        r = requests.get(url, timeout=5)
-        if r.status_code == 200:
-            return r.json()
-    except Exception:
-        return None
-    return None
+st.title("Ganesh Sarode")
+st.subheader("BTech | EXTC | VJTI Mumbai")
 
-
-lottie_person = load_lottie(
-    "https://assets10.lottiefiles.com/packages/lf20_w51pcehl.json"
+st.write(
+    "Focused on **Data Structures, Python, and building deployable applications**. "
+    "Interested in software engineering and problem-solving driven roles."
 )
 
-# --------------------------------------------------
-# GEMINI SETUP (STABLE)
-# --------------------------------------------------
-model = None
-try:
-    api_key = st.secrets["GOOGLE_API_KEY"]
-    genai.configure(api_key=api_key)
-    model = genai.GenerativeModel("gemini-pro")
-    st.write("Gemini API loaded:", bool(api_key))
-except Exception as e:
-    st.warning(f"Gemini disabled: {e}")
+st.divider()
 
 # --------------------------------------------------
-# HERO SECTION
+# RESUME
 # --------------------------------------------------
-col1, col2 = st.columns([2, 1])
+st.header("📄 Resume")
 
-with col1:
-    st.markdown(
-        """
-        <h1>Hey, I'm <span style="color:#6a11cb;">Ganesh Sarode 👋</span></h1>
-        <h3>BTech Student | Engineering Aspirant</h3>
-        <p>Focused on DSA, Python, and real-world problem solving.</p>
-        """,
-        unsafe_allow_html=True,
+with open("resume.pdf", "rb") as file:
+    st.download_button(
+        label="⬇️ Download Resume (PDF)",
+        data=file,
+        file_name="Ganesh_Sarode_Resume.pdf",
+        mime="application/pdf"
     )
 
-with col2:
-    if lottie_person:
-        st_lottie(lottie_person, height=300)
+
+# --------------------------------------------------
+# SKILLS
+# --------------------------------------------------
+st.header("🛠 Skills")
+
+st.markdown("""
+<div class="card">
+<b>Programming:</b> Python, Basic C / C++ <br><br>
+<b>Core CS:</b> Data Structures & Algorithms, Problem Solving <br><br>
+<b>Tools:</b> Streamlit, Git & GitHub, Basic Machine Learning
+</div>
+""", unsafe_allow_html=True)
 
 st.divider()
 
 # --------------------------------------------------
-# CHATBOT SECTION
+# PROJECTS (WITH GITHUB LINKS)
 # --------------------------------------------------
-st.subheader("💬 Ask Me Anything About Ganesh")
+st.header("📌 Projects")
 
-question = st.text_input("Type your question")
+st.markdown("""
+<div class="card">
+<h4>🤖 JARVIS – Voice Assistant</h4>
+<b>Problem:</b> Manual interaction is inefficient for repetitive tasks.<br>
+<b>Solution:</b> Python-based voice assistant executing commands using speech recognition.<br>
+<b>Tech:</b> Python, Speech Recognition, Text-to-Speech.<br>
+<b>Learning:</b> API integration, real-time input handling, debugging.<br><br>
+🔗 <a href="https://github.com/GaneshSarode/jarvis-ai-voice-assistant-" target="_blank">View on GitHub</a>
+</div>
+""", unsafe_allow_html=True)
 
-if question:
-    if model:
-        with st.spinner("Thinking..."):
-            try:
-                response = model.generate_content(
-                    f"You are an assistant for Ganesh Sarode.\n\nUser: {question}"
-                )
-                st.success(response.text)
-            except Exception as e:
-                st.error(f"AI error: {e}")
-    else:
-        st.error("Gemini model not available")
+st.markdown("""
+<div class="card">
+<h4>🔐 Digital Lock System</h4>
+<b>Problem:</b> Traditional lock systems lack flexibility and customization.<br>
+<b>Solution:</b> Logic-based digital lock with authentication control.<br>
+<b>Tech:</b> Digital Logic, Embedded Systems concepts.<br>
+<b>Learning:</b> Logical design, hardware–software interaction.<br><br>
+🔗 <a href="https://github.com/GaneshSarode/Digital-Logic-Keypad-Lock" target="_blank">View on GitHub</a>
+</div>
+""", unsafe_allow_html=True)
 
-# --------------------------------------------------
-# FOOTER
-# --------------------------------------------------
 st.divider()
-st.write("✨ Built with Python & Streamlit")
+
+# --------------------------------------------------
+# CERTIFICATIONS (CLICKABLE)
+# --------------------------------------------------
+st.header("📜 Certifications")
+
+st.markdown("""
+# <div class="card">
+# <h4>🎓 Python for Everybody</h4>
+# <b>Platform:</b> Coursera<br>
+# 🔗 <a href="PASTE_COURSERA_LINK_HERE" target="_blank">View Certificate</a>
+# </div>
+
+<div class="card">
+<h4>🎓 Data Science s</h4>
+<b>Platform:</b> Coursera<br>
+🔗 <a href="PASTE_COURSERA_LINK_HERE" target="_blank">View Certificate</a>
+</div>
+
+<div class="card">
+<h4>🎓 Machine Learning </h4>
+<b>Platform:</b> Coursera<br>
+🔗 <a href="PASTE_COURSERA_LINK_HERE" target="_blank">View Certificate</a>
+</div>
+""", unsafe_allow_html=True)
+
+# --------------------------------------------------
+# LINKS
+# --------------------------------------------------
+st.header("🔗 Links")
+
+st.markdown("""
+<div class="card">
+<b>GitHub:</b>"https://github.com/GaneshSarode" <br>
+<b>LinkedIn:</b> www.linkedin.com/in/ganesh-sarode-1bb40136a <br>
+<b>Email:</b> ganeshsarode3015@gmail.com
+</div>
+""", unsafe_allow_html=True)
+
+st.divider()
+st.write("📍 Built with Python & Streamlit")
