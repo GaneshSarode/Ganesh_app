@@ -4,7 +4,7 @@ from streamlit_lottie import st_lottie
 import google.generativeai as genai
 
 # --------------------------------------------------
-# PAGE CONFIG (MUST BE FIRST)
+# PAGE CONFIG (FIRST STREAMLIT COMMAND)
 # --------------------------------------------------
 st.set_page_config(
     page_title="Ganesh Sarode | Portfolio",
@@ -12,10 +12,13 @@ st.set_page_config(
     layout="wide"
 )
 
-st.write("APP STARTED")  # Debug marker (remove later)
+# --------------------------------------------------
+# DEBUG MARKER
+# --------------------------------------------------
+st.write("APP STARTED")
 
 # --------------------------------------------------
-# THEME
+# THEME TOGGLE
 # --------------------------------------------------
 if "theme" not in st.session_state:
     st.session_state.theme = "light"
@@ -26,23 +29,21 @@ st.session_state.theme = "dark" if dark_mode else "light"
 
 def apply_theme(theme):
     if theme == "dark":
-        st.markdown("""
-        <style>
-        .stApp { background-color: #1e1e1e; color: white; }
-        </style>
-        """, unsafe_allow_html=True)
+        st.markdown(
+            "<style>.stApp{background-color:#1e1e1e;color:white;}</style>",
+            unsafe_allow_html=True,
+        )
     else:
-        st.markdown("""
-        <style>
-        .stApp { background-color: white; color: black; }
-        </style>
-        """, unsafe_allow_html=True)
+        st.markdown(
+            "<style>.stApp{background-color:white;color:black;}</style>",
+            unsafe_allow_html=True,
+        )
 
 
 apply_theme(st.session_state.theme)
 
 # --------------------------------------------------
-# LOTTIE LOADER
+# SAFE LOTTIE LOADER
 # --------------------------------------------------
 @st.cache_data
 def load_lottie(url):
@@ -50,28 +51,26 @@ def load_lottie(url):
         r = requests.get(url, timeout=5)
         if r.status_code == 200:
             return r.json()
-    except:
+    except Exception:
         return None
     return None
 
 
 lottie_person = load_lottie(
-    "https://assets10.lottiefiles.com/packages/lf20_w51pcehl.json")
-lottie_about = load_lottie(
-    "https://assets2.lottiefiles.com/packages/lf20_4kx2q32n.json")
-lottie_chat = load_lottie(
-    "https://assets2.lottiefiles.com/packages/lf20_0yfsb3a1.json")
+    "https://assets10.lottiefiles.com/packages/lf20_w51pcehl.json"
+)
 
 # --------------------------------------------------
-# GEMINI SETUP (FAIL-SAFE)
+# GEMINI SETUP (STABLE)
 # --------------------------------------------------
 model = None
 try:
     api_key = st.secrets["GOOGLE_API_KEY"]
     genai.configure(api_key=api_key)
-    model = genai.GenerativeModel("gemini-1.5-flash")
-except Exception:
-    st.warning("Gemini chatbot disabled (API key missing)")
+    model = genai.GenerativeModel("gemini-pro")
+    st.write("Gemini API loaded:", bool(api_key))
+except Exception as e:
+    st.warning(f"Gemini disabled: {e}")
 
 # --------------------------------------------------
 # HERO SECTION
@@ -79,11 +78,14 @@ except Exception:
 col1, col2 = st.columns([2, 1])
 
 with col1:
-    st.markdown("""
-    <h1>Hey, I'm <span style="color:#6a11cb;">Ganesh Sarode 👋</span></h1>
-    <h3>BTech Student | Engineering Aspirant</h3>
-    <p>Focused on Data Structures, Algorithms, and building real-world projects.</p>
-    """, unsafe_allow_html=True)
+    st.markdown(
+        """
+        <h1>Hey, I'm <span style="color:#6a11cb;">Ganesh Sarode 👋</span></h1>
+        <h3>BTech Student | Engineering Aspirant</h3>
+        <p>Focused on DSA, Python, and real-world problem solving.</p>
+        """,
+        unsafe_allow_html=True,
+    )
 
 with col2:
     if lottie_person:
@@ -92,37 +94,7 @@ with col2:
 st.divider()
 
 # --------------------------------------------------
-# ABOUT SECTION
-# --------------------------------------------------
-col1, col2 = st.columns(2)
-
-with col1:
-    st.subheader("🧠 About Me")
-    st.write("""
-    I’m a tech-focused student who believes in learning by building.
-    I work on Python, DSA, and applied problem-solving.
-    My goal is to convert strong fundamentals into real engineering skill.
-    """)
-
-with col2:
-    if lottie_about:
-        st_lottie(lottie_about, height=280)
-
-st.divider()
-
-# --------------------------------------------------
-# PROJECTS
-# --------------------------------------------------
-st.subheader("🛠️ Projects")
-
-st.success("🔍 Fuzzy Name Search App – Streamlit + Python")
-st.info("🤖 Automation & AI-based Experiments")
-st.warning("📊 Data Analysis & Visualization Projects")
-
-st.divider()
-
-# --------------------------------------------------
-# CHATBOT
+# CHATBOT SECTION
 # --------------------------------------------------
 st.subheader("💬 Ask Me Anything About Ganesh")
 
@@ -131,18 +103,15 @@ question = st.text_input("Type your question")
 if question:
     if model:
         with st.spinner("Thinking..."):
-            prompt = f"""
-You are an AI assistant for Ganesh Sarode's portfolio.
-
-User question: {question}
-"""
             try:
-                response = model.generate_content(prompt)
+                response = model.generate_content(
+                    f"You are an assistant for Ganesh Sarode.\n\nUser: {question}"
+                )
                 st.success(response.text)
-            except:
-                st.error("AI failed to respond.")
+            except Exception as e:
+                st.error(f"AI error: {e}")
     else:
-        st.error("Chatbot unavailable (API key missing).")
+        st.error("Gemini model not available")
 
 # --------------------------------------------------
 # FOOTER
