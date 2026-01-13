@@ -76,7 +76,7 @@ st.divider()
 # --------------------------------------------------
 st.header("📄 Resume")
 
-with open("resume.pdf", "rb") as file:
+with open("Resume.pdf", "rb") as file:
     st.download_button(
         label="⬇️ Download Resume (PDF)",
         data=file,
